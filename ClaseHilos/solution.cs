@@ -1,8 +1,6 @@
-using System.Threading;
-
 namespace ClaseHilos
 {
-    internal class Producto
+   internal class Producto
    {
       public string Nombre { get; set; }
       public decimal PrecioUnitarioDolares { get; set; }
@@ -17,16 +15,8 @@ namespace ClaseHilos
    }
    internal class Solution //reference: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/lock
    {
-        static Barrier barrera = new Barrier(2, (b) =>
-        {
-            Console.WriteLine($"Post-Phase action: {b.CurrentPhaseNumber}");
-        });
-        public static Barrier barrera_
-        {
-            get { return barrera; }
-        }
 
-        static List<Producto> productos = new List<Producto>
+      static List<Producto> productos = new List<Producto>
         {
             new Producto("Camisa", 10, 50),
             new Producto("Pantalón", 8, 30),
@@ -35,54 +25,50 @@ namespace ClaseHilos
             new Producto("Gorra", 16, 10)
         };
 
-      static double precio_dolar = 500;
+      static int precio_dolar = 500;
 
-      static void Tarea1()
-      {
-            for (int i = 0; i < productos.Count; i++)
+        static void Tarea1()
+        {
+            Console.WriteLine("Tarea 1: Actualizar stock.");
+            foreach (var producto in productos)
             {
-                productos[i].CantidadEnStock += 10;
+                producto.CantidadEnStock += 10;
             }
-            barrera.SignalAndWait();
-      }
-      static void Tarea2()
-      {
-            precio_dolar = precio_dolar * (1.1);
-            barrera.SignalAndWait();
-      }
-      static void Tarea3()
-      {
-            decimal diezmo = 1.1m;
-            for (int j = 0; j < productos.Count; j++)
-            {
-                productos[j].PrecioUnitarioDolares = productos[j].PrecioUnitarioDolares * diezmo;
-            }
-            decimal precioTotal = 0;
-            for (int i = 0; i < productos.Count; i++)
-            {
-                precioTotal = precioTotal + productos[i].PrecioUnitarioDolares;
-            }
-            foreach (Producto producto in productos)
-            {
-                Console.WriteLine("--------------------------------------------");
-                Console.WriteLine("Producto:\t" + producto.Nombre);
-                Console.WriteLine("Stock:\t\t" + producto.CantidadEnStock);
-                Console.WriteLine("Precio (USD):\t" + producto.PrecioUnitarioDolares);
-            }
-            Console.WriteLine("--------------------------------------------");
+        }
 
-            Console.WriteLine("Precio total: " + precioTotal);
+        static void Tarea2()
+        {
+            Console.WriteLine("Tarea 2: Actualizar precio del dólar.");
+            precio_dolar = 510; 
+        }
+
+        static void Tarea3()
+        {
+            Console.WriteLine("Tarea 3: Generar informe.");
+            foreach (var producto in productos)
+            {
+                decimal valorInventario = producto.PrecioUnitarioDolares * producto.CantidadEnStock;
+                Console.WriteLine($"Producto: {producto.Nombre}, Cantidad: {producto.CantidadEnStock}, Valor en USD: {valorInventario}");
+            }
+            Console.WriteLine($"Precio del dólar actualizado: {precio_dolar}");
+        }
+
+        internal static void Excecute()
+        {
+            Thread task1 = new Thread(Tarea1);
+            Thread task2 = new Thread(Tarea2);
+            Thread task3 = new Thread(Tarea3);
+
+            task1.Start();
+            task2.Start();
+            task3.Start();
+
+            task1.Join();
+            task2.Join();
+            task3.Join();
+
+            Console.WriteLine("Todas las tareas han finalizado.");
+            Console.ReadLine();
+        }
     }
-
-      internal static void Excecute()
-      {
-            Thread hilo = new Thread(new ThreadStart(Tarea1));
-            Thread hilo2 = new Thread(new ThreadStart(Tarea2));
-            Thread hilo3 = new Thread(new ThreadStart(Tarea3));
-
-            hilo.Start();
-            hilo2.Start();
-            hilo3.Start(); //para demostrar que funciona lo ponemos al principio
-    }
-  }
 }
